@@ -507,33 +507,13 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **MediaPipe** - For robust pose detection
 - **Groq** - For high-speed LLM inference
 - **Streamlit** - For rapid web development
 - **OpenCV** - For computer vision tools
 - Fitness community for inspiration and feedback
-
----
-
-## 📞 Support
-
-For issues, questions, or feedback:
-- Open an issue on GitHub
-- Check existing issues for solutions
-- Review documentation in `/tutorialinfo`
-
----
-
-## 🗺️ Roadmap
-
-| Version | Features | Status |
-|---------|----------|--------|
-| v1.0 | 5 core exercises, voice coaching, metrics | ✅ Current |
-| v1.1 | History analytics, form scoring | 🔄 In Progress |
-| v1.2 | Mobile responsive, additional exercises | 📅 Planned |
-| v2.0 | Mobile app, ML model fine-tuning | 📅 Future |
 
 ---
 
