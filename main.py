@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import time
 import pandas as pd
+from dotenv import load_dotenv
 from services.auth.login_wall import render_login_wall
 from services.state.session_defaults import initial_session_defaults
 from services.config.workout_config import EXERCISE_OPTIONS
@@ -18,6 +19,8 @@ from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 
   
 def main():
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
     st.set_page_config(
         page_icon="🏋️‍♀️",
         page_title="AI Real-time GYM Coach",
@@ -176,6 +179,13 @@ def main():
     st.title("AI Real-time GYM Coach")
     st.markdown("#### Real-time pose detection with proactive AI voice coaching")
  
+    if st.session_state.get("audio_to_play"):
+        autoplay_audio(st.session_state.audio_to_play)
+
+    if st.session_state.get("coach_feedback"):
+        st.markdown("")
+        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
+
     if not workout_started:
         st.markdown(
             """
@@ -219,13 +229,6 @@ def main():
             st.info("Select your camera and click Start below the preview to begin exercise tracking.")
 
         inject_webrtc_styles()
-
-    if st.session_state.get("audio_to_play"):
-        autoplay_audio(st.session_state.audio_to_play)
-
-    if st.session_state.get("coach_feedback"):
-        st.markdown("")
-        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
 
     st.divider()
 

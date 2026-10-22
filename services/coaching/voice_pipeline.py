@@ -1,5 +1,7 @@
+import base64
 import time
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 class VoicePipeline:
@@ -88,5 +90,18 @@ class VoicePipeline:
 def autoplay_audio(audio_bytes):
     if not audio_bytes:
         return
-    
-    st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+
+    encoded_audio = base64.b64encode(audio_bytes).decode("ascii")
+    components.html(
+        f"""
+        <audio autoplay style="display: none">
+            <source src="data:audio/mpeg;base64,{encoded_audio}" type="audio/mpeg">
+        </audio>
+        <script>
+            const audio = document.querySelector("audio");
+            audio.play().catch((error) => console.warn("Coach audio playback was blocked:", error));
+        </script>
+        """,
+        height=0,
+        scrolling=False,
+    )
