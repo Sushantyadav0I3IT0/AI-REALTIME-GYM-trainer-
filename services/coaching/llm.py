@@ -20,9 +20,8 @@ class LLMCoach:
         ]
 
         response = self.client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=messages,
-            temperature=0.4,
+            model="openai/gpt-oss-120b",
+            messages=messages
         )
 
         text = response.choices[0].message.content.strip()
