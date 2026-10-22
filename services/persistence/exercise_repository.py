@@ -64,7 +64,18 @@ def get_or_create_user(username: str) -> sqlite3.Row:
 
     if user is None:
         user = create_user(username)
-    
+
+    conn = _get_connection()
+    with conn:
+        conn.execute(
+            """
+            UPDATE exercises
+            SET user_id = ?
+            WHERE typeof(user_id) = 'text' AND user_id = ?
+            """,
+            (user["id"], username),
+        )
+
     return user
 
 
@@ -74,7 +85,7 @@ def add_exercise(user_id, exercise_name, reps, sets, time):
     with conn:
         existing = conn.execute("""
             SELECT * FROM exercises 
-            WHERE user_id = ? AND exercise_name = ? AND Date('created_at') = Date('now')
+            WHERE user_id = ? AND exercise_name = ? AND Date(created_at) = Date('now')
         """, (user_id, exercise_name)).fetchone()
 
         if existing:

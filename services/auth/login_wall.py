@@ -1,9 +1,17 @@
 import streamlit as st
+from services.persistence.exercise_repository import get_or_create_user
 
 
 def render_login_wall():
 
-    if st.session_state.get("user_id") is not None:
+    user_id = st.session_state.get("user_id")
+    if isinstance(user_id, int):
+        return True
+
+    username = st.session_state.get("username", "").strip()
+    if user_id is not None and username:
+        user = get_or_create_user(username)
+        st.session_state["user_id"] = user["id"]
         return True
 
     st.title("🏋️‍♂️ AI Real-time GYM Trainer")
@@ -22,15 +30,14 @@ def render_login_wall():
 
     if submit_button:
 
+        username = username.strip()
         if not username:
             st.error("Name cannot be empty")
             return False
 
-        # Store the username
         st.session_state["username"] = username
-
-        # Use the username as the user ID for now
-        st.session_state["user_id"] = username
+        user = get_or_create_user(username)
+        st.session_state["user_id"] = user["id"]
 
         st.rerun()
 

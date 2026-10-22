@@ -41,13 +41,21 @@ def main():
 
             if not api_key and hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
                 api_key = st.secrets["GROQ_API_KEY"]
-                
+
+            if not api_key:
+                raise ValueError("GROQ_API_KEY is not configured.")
+
             groq_client = Groq(api_key=api_key)
             llm_coach = LLMCoach(groq_client)
             tts = TextToSpeech()
             st.session_state.voice_pipeline = VoicePipeline(llm_coach, tts)
+            st.session_state.pop("coach_init_error", None)
         except Exception as e:
             st.session_state.voice_pipeline = None
+            st.session_state.coach_init_error = str(e)
+
+    if st.session_state.get("coach_init_error"):
+        st.error(f"AI coach is unavailable: {st.session_state.coach_init_error}")
 
     workout_started = st.session_state.get("workout_started", False)
     
@@ -168,13 +176,6 @@ def main():
     st.title("AI Real-time GYM Coach")
     st.markdown("#### Real-time pose detection with proactive AI voice coaching")
  
-    if st.session_state.get("audio_to_play"):
-        autoplay_audio(st.session_state.audio_to_play)
-
-    if st.session_state.get("coach_feedback"):
-        st.markdown("")
-        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
-
     if not workout_started:
         st.markdown(
             """
@@ -214,42 +215,49 @@ def main():
         if context.state.playing:
             time.sleep(0.25)
             st.rerun()
+        else:
+            st.info("Select your camera and click Start below the preview to begin exercise tracking.")
 
         inject_webrtc_styles()
+
+    if st.session_state.get("audio_to_play"):
+        autoplay_audio(st.session_state.audio_to_play)
+
+    if st.session_state.get("coach_feedback"):
+        st.markdown("")
+        st.success(f"🤖 **Coach:** {st.session_state.coach_feedback}")
 
     st.divider()
 
     st.markdown("#### Workout History")
 
-    user_id = st.session_state.get("user_id", 0)
+    user_id = st.session_state.user_id
+    history_rows = get_users_exercises(user_id)
 
-    if isinstance(user_id, int):
-        history_rows = get_users_exercises(user_id)
+    arr = [
+        {
+            "Exercise": row['exercise_name'],
+            "Reps": row['reps'],
+            "Sets": row['sets'],
+            "Time (sec)": row['time'],
+            "Date": row['created_at']
+        }
+        for row in history_rows
+    ]
 
-        arr = [
-            {
-                "Exercise": row['exercise_name'],
-                "Reps": row['reps'],
-                "Sets": row['sets'],
-                "Time (sec)": row['time'],
-                "Date": row['created_at']
-            }
-            for row in history_rows
-        ]
+    df = pd.DataFrame(arr)
 
-        df = pd.DataFrame(arr)
-
-        if not df.empty:
-            df["Date"] = pd.to_datetime(df["Date"]).dt.date
-            agg_df = df.groupby(["Exercise", "Date"]).agg({
-                "Reps": 'sum',
-                "Sets": "sum",
-                "Time (sec)": "sum"
-            }).reset_index()
-            agg_df.index += 1
-            st.table(agg_df, border="horizontal")
-        else:
-            st.info("No workout history found.")
+    if not df.empty:
+        df["Date"] = pd.to_datetime(df["Date"]).dt.date
+        agg_df = df.groupby(["Exercise", "Date"]).agg({
+            "Reps": 'sum',
+            "Sets": "sum",
+            "Time (sec)": "sum"
+        }).reset_index()
+        agg_df.index += 1
+        st.table(agg_df, border="horizontal")
+    else:
+        st.info("No workout history found. Complete a set to save it here.")
 
 
 if __name__ == "__main__":
